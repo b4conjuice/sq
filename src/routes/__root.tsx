@@ -15,7 +15,7 @@ import Shell from '@/components/shell'
 //   trpc: TRPCOptionsProxy<TRPCRouter>
 // }
 
-const DEFAULT_TITLE = 'sq'
+export const DEFAULT_TITLE = 'sq'
 
 // export const Route = createRootRouteWithContext<MyRouterContext>()({
 export const Route = createRootRoute({
