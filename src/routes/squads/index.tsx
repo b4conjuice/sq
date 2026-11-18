@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 import ConfirmModal from '@/components/confirm-modal'
 import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
@@ -49,6 +50,9 @@ function RouteComponent() {
     [navigate, squads]
   )
   useNavigateCommands(navigateCommands)
+  useHotkey('A', () => {
+    setIsAddSquadModalOpen(true)
+  })
   return (
     <>
       <main className='flex grow flex-col gap-4 p-4'>
