@@ -194,6 +194,21 @@ function RouteComponent() {
       </main>
       <PageFooter />
       <CommandPalette
+        placeholder='squad actions'
+        commands={[
+          {
+            id: 'edit-squad-name',
+            title: 'edit squad name',
+            subtitle: name,
+            keywords: ['rename', 'squad'],
+            action: () => {
+              setNewSquadName(name)
+              setIsEditNameModalOpen(true)
+            },
+          },
+        ]}
+      />
+      <CommandPalette
         toggleIsOpenHotKey='A'
         placeholder='add member'
         isOpen={isAddMemberCommandPaletteOpen}
