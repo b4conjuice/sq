@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
+import CommandPalette from '@/components/command-palette'
 import { PencilIcon, PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
 import Modal from '@/components/modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
@@ -13,6 +14,11 @@ import { DEFAULT_TITLE } from '@/routes/__root'
 
 const inputClassName =
   'bg-cb-blue w-full rounded border border-cb-dusty-blue px-2 py-1 outline-none focus:border-cb-pink'
+
+const toggleFilterValue = (values: string[], value: string) =>
+  values.includes(value)
+    ? values.filter(currentValue => currentValue !== value)
+    : [...values, value]
 
 export const Route = createFileRoute('/squads/$squadId')({
   component: RouteComponent,
@@ -42,6 +48,10 @@ function RouteComponent() {
   const { members: memberList, saveMember } = useMembers()
   const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false)
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  const [isAddMemberCommandPaletteOpen, setIsAddMemberCommandPaletteOpen] =
+    useState(false)
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [newSquadName, setNewSquadName] = useState('')
   const squad = squads.at(squadIndex)
   const navigateCommands = useMemo(
@@ -87,8 +97,18 @@ function RouteComponent() {
       squad: { ...squad, ...updates },
     })
   }
+  const squadMemberNames = new Set(members.map(member => member.name))
+  const roles = [...new Set(memberList.flatMap(member => member.roles))]
+  const tags = [...new Set(memberList.flatMap(member => member.tags))]
+  const filteredMemberList = memberList.filter(
+    member =>
+      (selectedRoles.length === 0 ||
+        selectedRoles.every(role => member.roles.includes(role))) &&
+      (selectedTags.length === 0 ||
+        selectedTags.every(tag => member.tags.includes(tag)))
+  )
   const membersNotOnSquad = memberList.filter(
-    member => !members.some(squadMember => squadMember.name === member.name)
+    member => !squadMemberNames.has(member.name)
   )
   return (
     <>
@@ -114,7 +134,7 @@ function RouteComponent() {
             type='button'
             aria-label='add member'
             onClick={() => {
-              setIsAddMemberModalOpen(true)
+              setIsAddMemberCommandPaletteOpen(true)
             }}
           >
             <PlusIcon className='h-6 w-6' />
@@ -173,6 +193,77 @@ function RouteComponent() {
         )}
       </main>
       <PageFooter />
+      <CommandPalette
+        toggleIsOpenHotKey='A'
+        placeholder='add member'
+        isOpen={isAddMemberCommandPaletteOpen}
+        setIsOpen={setIsAddMemberCommandPaletteOpen}
+        filterGroups={[
+          {
+            id: 'role',
+            label: 'role',
+            options: roles,
+            selected: selectedRoles,
+            onToggle: role => {
+              setSelectedRoles(prev => toggleFilterValue(prev, role))
+            },
+          },
+          {
+            id: 'tag',
+            label: 'tag',
+            options: tags,
+            selected: selectedTags,
+            onToggle: tag => {
+              setSelectedTags(prev => toggleFilterValue(prev, tag))
+            },
+          },
+        ]}
+        commands={[
+          {
+            id: 'create-new-member',
+            title: 'create new member',
+            subtitle: 'create and add to this squad',
+            keywords: ['new', 'create'],
+            action: () => {
+              setIsAddMemberModalOpen(true)
+            },
+          },
+          ...filteredMemberList.map(member => ({
+            id: `add-member-${member.name}`,
+            title: `add ${member.name}`,
+            subtitle: member.roles.join(', ') || 'member',
+            keywords: [
+              'member',
+              member.nickname ?? '',
+              ...member.roles,
+              ...member.tags,
+            ],
+            disabled: squadMemberNames.has(member.name),
+            action: () => {
+              addMemberToSquad({ squadIndex, member })
+            },
+          })),
+        ]}
+      />
+      <CommandPalette
+        toggleIsOpenHotKey='R'
+        placeholder='remove member'
+        commands={members.map((member, memberIndex) => ({
+          id: `remove-member-${member.name}`,
+          title: `remove ${member.name}`,
+          subtitle: member.roles.join(', ') || 'member',
+          keywords: [
+            'remove',
+            'drop',
+            member.nickname ?? '',
+            ...member.roles,
+            ...member.tags,
+          ],
+          action: () => {
+            removeMemberFromSquad({ squadIndex, memberIndex })
+          },
+        }))}
+      />
       <Modal
         title='edit squad name'
         isOpen={isEditNameModalOpen}
