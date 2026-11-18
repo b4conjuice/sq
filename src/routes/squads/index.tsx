@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import ConfirmModal from '@/components/confirm-modal'
 import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
 import Modal from '@/components/modal'
+import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'
 import { createSquad, useSquads } from '@/lib/use-squads'
 import { DEFAULT_TITLE } from '@/routes/__root'
@@ -27,6 +28,27 @@ function RouteComponent() {
   >(null)
   const squadToBeDeleted =
     squadToBeDeletedIndex === null ? null : squads[squadToBeDeletedIndex]
+  const navigateCommands = useMemo(
+    () =>
+      squads.map((squad, index) => ({
+        id: `go-squad-${index}`,
+        title: `go ${squad.name}`,
+        subtitle: 'squad',
+        keywords: [
+          'squad',
+          squad.name,
+          ...squad.members.map(member => member.name),
+        ],
+        action: () => {
+          navigate({
+            to: '/squads/$squadId',
+            params: { squadId: String(index) },
+          })
+        },
+      })),
+    [navigate, squads]
+  )
+  useNavigateCommands(navigateCommands)
   return (
     <>
       <main className='flex grow flex-col gap-4 p-4'>

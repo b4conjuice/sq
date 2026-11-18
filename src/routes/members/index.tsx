@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { PlusIcon } from '@/components/icons'
 import NewMemberModal from '@/components/new-member-modal'
+import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'
 import { useMembers } from '@/lib/use-members'
 import { DEFAULT_TITLE } from '@/routes/__root'
@@ -19,11 +20,34 @@ export const Route = createFileRoute('/members/')({
 })
 
 function RouteComponent() {
+  const navigate = useNavigate()
   const { members, saveMember } = useMembers()
   const [search, setSearch] = useState('')
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const navigateCommands = useMemo(
+    () =>
+      members.map((member, index) => ({
+        id: `go-member-${index}`,
+        title: `go ${member.name}`,
+        subtitle: member.roles.join(', ') || 'member',
+        keywords: [
+          'member',
+          member.nickname ?? '',
+          ...member.roles,
+          ...member.tags,
+        ],
+        action: () => {
+          navigate({
+            to: '/members/$memberId',
+            params: { memberId: String(index) },
+          })
+        },
+      })),
+    [members, navigate]
+  )
+  useNavigateCommands(navigateCommands)
 
   const roles = [...new Set(members.flatMap(member => member.roles))]
   const allRoleTags = [...roles, 'no-role']

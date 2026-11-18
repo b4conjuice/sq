@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { PencilIcon, PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
 import Modal from '@/components/modal'
+import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import NewMemberForm from '@/components/new-member-form'
 import PageFooter from '@/components/page-footer'
 import type { Squad } from '@/lib/use-squads'
@@ -35,6 +36,7 @@ export const Route = createFileRoute('/squads/$squadId')({
 function RouteComponent() {
   const { squadId: squadIdParam } = Route.useParams()
   const squadIndex = Number(squadIdParam)
+  const navigate = useNavigate()
   const { squads, saveSquad, addMemberToSquad, removeMemberFromSquad } =
     useSquads()
   const { members: memberList, saveMember } = useMembers()
@@ -42,6 +44,38 @@ function RouteComponent() {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
   const [newSquadName, setNewSquadName] = useState('')
   const squad = squads.at(squadIndex)
+  const navigateCommands = useMemo(
+    () =>
+      (squad?.members ?? []).flatMap(member => {
+        const globalIndex = memberList.findIndex(
+          currentMember => currentMember.name === member.name
+        )
+        if (globalIndex === -1) {
+          return []
+        }
+        return [
+          {
+            id: `go-member-${globalIndex}`,
+            title: `go ${member.name}`,
+            subtitle: 'member',
+            keywords: [
+              'member',
+              member.nickname ?? '',
+              ...member.roles,
+              ...member.tags,
+            ],
+            action: () => {
+              navigate({
+                to: '/members/$memberId',
+                params: { memberId: String(globalIndex) },
+              })
+            },
+          },
+        ]
+      }),
+    [memberList, navigate, squad]
+  )
+  useNavigateCommands(navigateCommands)
   if (!squad) {
     return <p>squad does not exist</p>
   }

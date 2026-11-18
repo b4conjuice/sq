@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import ConfirmModal from '@/components/confirm-modal'
 import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
 import Modal from '@/components/modal'
+import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'
 import type { Member } from '@/lib/use-members'
 import { getMembers, useMembers } from '@/lib/use-members'
@@ -149,6 +150,35 @@ function RouteComponent() {
   const [isAddSquadModalOpen, setIsAddSquadModalOpen] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [newSquadName, setNewSquadName] = useState('')
+  const navigateCommands = useMemo(
+    () =>
+      member
+        ? squads.flatMap((squad, index) =>
+            squad.members.some(squadMember => squadMember.name === member.name)
+              ? [
+                  {
+                    id: `go-squad-${index}`,
+                    title: `go ${squad.name}`,
+                    subtitle: 'squad',
+                    keywords: [
+                      'squad',
+                      squad.name,
+                      ...squad.members.map(squadMember => squadMember.name),
+                    ],
+                    action: () => {
+                      navigate({
+                        to: '/squads/$squadId',
+                        params: { squadId: String(index) },
+                      })
+                    },
+                  },
+                ]
+              : []
+          )
+        : [],
+    [member, navigate, squads]
+  )
+  useNavigateCommands(navigateCommands)
   if (!member) {
     return <p>member does not exist</p>
   }
