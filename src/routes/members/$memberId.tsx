@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
+import CommandPalette from '@/components/command-palette'
 import ConfirmModal from '@/components/confirm-modal'
 import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
 import Modal from '@/components/modal'
@@ -41,11 +44,13 @@ function TagEditor({
   values,
   suggestions,
   onChange,
+  inputRef,
 }: {
   label: string
   values: string[]
   suggestions: string[]
   onChange: (values: string[]) => void
+  inputRef?: RefObject<HTMLInputElement | null>
 }) {
   const [newValue, setNewValue] = useState('')
   const chips = [...new Set([...suggestions, ...values])]
@@ -83,6 +88,7 @@ function TagEditor({
       </ul>
       <div className='flex gap-2'>
         <input
+          ref={inputRef}
           type='text'
           className={inputClassName}
           placeholder={`add ${label}`}
@@ -150,6 +156,24 @@ function RouteComponent() {
   const [isAddSquadModalOpen, setIsAddSquadModalOpen] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [newSquadName, setNewSquadName] = useState('')
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const roleInputRef = useRef<HTMLInputElement>(null)
+  const tagInputRef = useRef<HTMLInputElement>(null)
+  const focusAfterCloseRef = useRef<(() => void) | null>(null)
+  const hasChanges =
+    member !== undefined &&
+    newMember.name.trim() !== '' &&
+    (newMember.name !== member.name ||
+      (newMember.nickname ?? '') !== (member.nickname ?? '') ||
+      !listsAreEqual(newMember.roles, member.roles) ||
+      !listsAreEqual(newMember.tags, member.tags))
+  const submitMember = () => {
+    if (!member || !hasChanges) {
+      return
+    }
+    saveMember({ member: newMember, index: memberIndex })
+    updateMemberInSquads({ memberName: member.name, member: newMember })
+  }
   const navigateCommands = useMemo(
     () =>
       member
@@ -179,6 +203,12 @@ function RouteComponent() {
     [member, navigate, squads]
   )
   useNavigateCommands(navigateCommands)
+  useHotkey('A', () => {
+    setIsAddSquadModalOpen(true)
+  })
+  useHotkey('Mod+S', () => {
+    submitMember()
+  })
   if (!member) {
     return <p>member does not exist</p>
   }
@@ -192,17 +222,23 @@ function RouteComponent() {
   const squadsWithoutMember = squads.filter(squad =>
     squad.members.every(squadMember => squadMember.name !== name)
   )
-  const hasChanges =
-    newMember.name !== member.name ||
-    (newMember.nickname ?? '') !== (member.nickname ?? '') ||
-    !listsAreEqual(newMember.roles, member.roles) ||
-    !listsAreEqual(newMember.tags, member.tags)
-  const submitMember = () => {
-    if (!hasChanges) {
-      return
-    }
-    saveMember({ member: newMember, index: memberIndex })
-    updateMemberInSquads({ memberName: member.name, member: newMember })
+  const roleOptions = [...new Set([...roles, ...newMember.roles])]
+  const tagOptions = [...new Set([...tags, ...newMember.tags])]
+  const toggleRole = (role: string) => {
+    setNewMember(prev => ({
+      ...prev,
+      roles: prev.roles.includes(role)
+        ? prev.roles.filter(currentRole => currentRole !== role)
+        : [...prev.roles, role],
+    }))
+  }
+  const toggleTag = (tag: string) => {
+    setNewMember(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag)
+        ? prev.tags.filter(currentTag => currentTag !== tag)
+        : [...prev.tags, tag],
+    }))
   }
   return (
     <>
@@ -228,6 +264,7 @@ function RouteComponent() {
           }}
         >
           <input
+            ref={nameInputRef}
             type='text'
             className={inputClassName}
             placeholder='name'
@@ -247,6 +284,7 @@ function RouteComponent() {
           />
           <TagEditor
             label='roles'
+            inputRef={roleInputRef}
             values={newMember.roles}
             suggestions={roles}
             onChange={newRoles => {
@@ -255,6 +293,7 @@ function RouteComponent() {
           />
           <TagEditor
             label='tags'
+            inputRef={tagInputRef}
             values={newMember.tags}
             suggestions={tags}
             onChange={newTags => {
@@ -312,6 +351,93 @@ function RouteComponent() {
         )}
       </main>
       <PageFooter />
+      <CommandPalette
+        placeholder='member actions'
+        afterClose={() => {
+          const focus = focusAfterCloseRef.current
+          if (!focus) {
+            return
+          }
+          focusAfterCloseRef.current = null
+          focus()
+        }}
+        commands={[
+          {
+            id: 'rename-member',
+            title: 'rename member',
+            subtitle: name,
+            keywords: ['name', 'edit'],
+            action: () => {
+              focusAfterCloseRef.current = () => {
+                nameInputRef.current?.focus()
+                nameInputRef.current?.select()
+              }
+            },
+          },
+          {
+            id: 'create-role',
+            title: 'create new role',
+            subtitle: 'add a role to this member',
+            keywords: ['new', 'create', 'role'],
+            action: () => {
+              focusAfterCloseRef.current = () => {
+                roleInputRef.current?.focus()
+              }
+            },
+          },
+          {
+            id: 'create-tag',
+            title: 'create new tag',
+            subtitle: 'add a tag to this member',
+            keywords: ['new', 'create', 'tag'],
+            action: () => {
+              focusAfterCloseRef.current = () => {
+                tagInputRef.current?.focus()
+              }
+            },
+          },
+          ...roleOptions.map(role => ({
+            id: `toggle-role-${role}`,
+            title: `toggle role ${role}`,
+            subtitle: newMember.roles.includes(role)
+              ? 'selected'
+              : 'not selected',
+            keywords: ['role', 'toggle', role],
+            action: () => {
+              toggleRole(role)
+            },
+          })),
+          ...tagOptions.map(tag => ({
+            id: `toggle-tag-${tag}`,
+            title: `toggle tag ${tag}`,
+            subtitle: newMember.tags.includes(tag)
+              ? 'selected'
+              : 'not selected',
+            keywords: ['tag', 'toggle', tag],
+            action: () => {
+              toggleTag(tag)
+            },
+          })),
+          {
+            id: 'add-to-squad',
+            title: 'add to squad',
+            subtitle: name,
+            keywords: ['new'],
+            action: () => {
+              setIsAddSquadModalOpen(true)
+            },
+          },
+          {
+            id: 'delete-member',
+            title: 'delete member',
+            subtitle: name,
+            keywords: ['remove'],
+            action: () => {
+              setIsConfirmModalOpen(true)
+            },
+          },
+        ]}
+      />
       <Modal
         title={`add ${name} to squad`}
         isOpen={isAddSquadModalOpen}
