@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 
+import CommandPalette from '@/components/command-palette'
 import { PlusIcon } from '@/components/icons'
 import NewMemberModal from '@/components/new-member-modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
@@ -199,6 +200,56 @@ function RouteComponent() {
           <PlusIcon className='h-6 w-6' />
         </button>
       </PageFooter>
+      <CommandPalette
+        toggleIsOpenHotKey='Mod+K'
+        placeholder='member actions'
+        commands={[
+          {
+            id: 'add-member',
+            title: 'add member',
+            subtitle: 'create a new member',
+            keywords: ['new', 'create'],
+            action: () => {
+              setIsAddMemberModalOpen(true)
+            },
+          },
+          ...allRoleTags.map(role => ({
+            id: `toggle-role-${role}`,
+            title: `toggle role ${role}`,
+            subtitle: selectedRoles.includes(role)
+              ? 'selected'
+              : 'not selected',
+            keywords: ['role', 'filter', 'toggle', role],
+            action: () => {
+              toggleRole(role)
+            },
+          })),
+          ...allTagTags.map(tag => ({
+            id: `toggle-tag-${tag}`,
+            title: `toggle tag ${tag}`,
+            subtitle: selectedTags.includes(tag) ? 'selected' : 'not selected',
+            keywords: ['tag', 'filter', 'toggle', tag],
+            action: () => {
+              toggleTag(tag)
+            },
+          })),
+          {
+            id: 'clear-filters',
+            title: 'clear filters',
+            subtitle: 'reset search, roles, and tags',
+            keywords: ['reset'],
+            disabled:
+              query === '' &&
+              selectedRoles.length === 0 &&
+              selectedTags.length === 0,
+            action: () => {
+              setSearch('')
+              setSelectedRoles([])
+              setSelectedTags([])
+            },
+          },
+        ]}
+      />
       <NewMemberModal
         isOpen={isAddMemberModalOpen}
         setIsOpen={setIsAddMemberModalOpen}
