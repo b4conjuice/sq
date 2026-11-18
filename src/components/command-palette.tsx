@@ -50,6 +50,7 @@ export default function CommandPalette({
   showLaunchButton,
   toggleIsOpenHotKey,
   filterGroups,
+  afterClose,
 }: {
   commands: Command[]
   placeholder?: string
@@ -58,6 +59,7 @@ export default function CommandPalette({
   showLaunchButton?: boolean
   toggleIsOpenHotKey?: RegisterableHotkey | RegisterableHotkey[]
   filterGroups?: CommandFilterGroup[]
+  afterClose?: () => void
 }) {
   const [internalIsOpen, internalSetIsOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -123,7 +125,14 @@ export default function CommandPalette({
 
   return (
     <>
-      <Transition show={isOpen} as={Fragment} afterLeave={() => setQuery('')}>
+      <Transition
+        show={isOpen}
+        as={Fragment}
+        afterLeave={() => {
+          setQuery('')
+          afterClose?.()
+        }}
+      >
         <Dialog
           onClose={setIsOpen}
           className='fixed inset-0 z-50 overflow-y-auto p-4 pt-[15vh]'
