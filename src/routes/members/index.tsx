@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 import { PlusIcon } from '@/components/icons'
 import NewMemberModal from '@/components/new-member-modal'
@@ -48,6 +49,9 @@ function RouteComponent() {
     [members, navigate]
   )
   useNavigateCommands(navigateCommands)
+  useHotkey('A', () => {
+    setIsAddMemberModalOpen(true)
+  })
 
   const roles = [...new Set(members.flatMap(member => member.roles))]
   const allRoleTags = [...roles, 'no-role']
