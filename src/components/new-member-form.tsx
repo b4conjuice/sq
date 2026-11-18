@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { SaveIcon } from '@/components/icons'
+import { ArrowDownOnSquareIcon } from '@heroicons/react/20/solid'
 import type { Member } from '@/lib/use-members'
 
 type MemberDraft = {
@@ -104,7 +104,7 @@ export default function NewMemberForm({
           type='submit'
           disabled={draft.name.trim() === ''}
         >
-          <SaveIcon className='h-6 w-6' /> {submitLabel}
+          <ArrowDownOnSquareIcon className='h-6 w-6' /> {submitLabel}
         </button>
       </div>
     </form>

@@ -5,7 +5,11 @@ import { useHotkey } from '@tanstack/react-hotkeys'
 
 import CommandPalette from '@/components/command-palette'
 import ConfirmModal from '@/components/confirm-modal'
-import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
+import {
+  ArrowDownOnSquareIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/react/20/solid'
 import Modal from '@/components/modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'
@@ -306,7 +310,7 @@ function RouteComponent() {
               type='submit'
               disabled={!hasChanges}
             >
-              <SaveIcon className='h-6 w-6' /> save
+              <ArrowDownOnSquareIcon className='h-6 w-6' /> save
             </button>
             <button
               className='flex items-center gap-2 text-red-700 hover:text-red-700/75'
@@ -495,7 +499,7 @@ function RouteComponent() {
               type='submit'
               disabled={newSquadName.trim() === ''}
             >
-              <SaveIcon className='h-6 w-6' /> save
+              <ArrowDownOnSquareIcon className='h-6 w-6' /> save
             </button>
           </div>
         </form>

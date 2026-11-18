@@ -2,7 +2,12 @@ import { useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import CommandPalette from '@/components/command-palette'
-import { PencilIcon, PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
+import {
+  ArrowDownOnSquareIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/react/20/solid'
 import Modal from '@/components/modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import NewMemberForm from '@/components/new-member-form'
@@ -124,7 +129,7 @@ function RouteComponent() {
               setIsEditNameModalOpen(true)
             }}
           >
-            <PencilIcon className='h-6 w-6' />
+            <PencilSquareIcon className='h-6 w-6' />
           </button>
         </h2>
         <div className='flex items-center justify-between'>
@@ -310,7 +315,7 @@ function RouteComponent() {
                 newSquadName.trim() === '' || newSquadName.trim() === name
               }
             >
-              <SaveIcon className='h-6 w-6' /> save
+              <ArrowDownOnSquareIcon className='h-6 w-6' /> save
             </button>
           </div>
         </form>

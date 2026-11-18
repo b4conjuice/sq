@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 
-import { XMarkIcon } from '@/components/icons'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 
 export default function Modal({
   isOpen,

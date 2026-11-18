@@ -3,7 +3,7 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 
 import CommandPalette from '@/components/command-palette'
-import { PlusIcon } from '@/components/icons'
+import { PlusIcon } from '@heroicons/react/20/solid'
 import NewMemberModal from '@/components/new-member-modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'

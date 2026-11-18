@@ -3,7 +3,11 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useHotkey } from '@tanstack/react-hotkeys'
 
 import ConfirmModal from '@/components/confirm-modal'
-import { PlusIcon, SaveIcon, TrashIcon } from '@/components/icons'
+import {
+  ArrowDownOnSquareIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/react/20/solid'
 import Modal from '@/components/modal'
 import { useNavigateCommands } from '@/components/navigate-command-palette-provider'
 import PageFooter from '@/components/page-footer'
@@ -140,7 +144,7 @@ function RouteComponent() {
               type='submit'
               disabled={newSquadName.trim() === ''}
             >
-              <SaveIcon className='h-6 w-6' /> save
+              <ArrowDownOnSquareIcon className='h-6 w-6' /> save
             </button>
           </div>
         </form>

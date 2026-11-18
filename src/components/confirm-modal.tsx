@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 
-import { CheckIcon, XMarkIcon } from '@/components/icons'
+import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import Modal from '@/components/modal'
 
 type ModalProps = ComponentProps<typeof Modal>
